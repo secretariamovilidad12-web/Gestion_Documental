@@ -1,0 +1,165 @@
+:root {
+    --azul: #134074;
+    --azul-oscuro: #0b2545;
+    --azulgris: #8da9c4;
+    --blanco: #fff;
+    --fuente: "Quicksand", sans-serif;
+
+}
+
+html {
+    box-sizing: border-box;
+}
+
+*,
+*::after,
+*::before {
+    box-sizing: inherit;
+}
+
+body {
+    font-family: var(--fuente);
+    background-color: var(--azul-oscuro);
+    display: flex;
+    align-items: center;
+    height: 100vh;
+
+}
+
+.container-login {
+    margin: 0 auto;
+    max-width: 1200px;
+    width: 95%;
+
+}
+
+.imagen-Login {
+    background-image: url(../img/bg_login.png);
+    background-position: center center;
+    background-size: cover;
+    height: 200px;
+    flex: 0 0 calc(60%);
+    position: relative;
+
+}
+
+.imagen-Login::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to bottom, rgba(141, 169, 196, 0.5), rgba(19, 64, 116, 0.5));
+}
+
+@media(min-width:768px) {
+    .imagen-Login {
+        height: auto;
+        background-position: right;
+    }
+}
+
+@media(min-width:1200px) {
+    .imagen-Login {
+        background-position: center;
+    }
+}
+
+@media(min-width:768px) {
+    .container-login {
+        display: flex;
+    }
+}
+
+@media (max-width: 767px) {
+    body {
+        height: auto;
+        min-height: 100vh;
+        align-items: flex-start;
+        padding-top: 40px;
+        padding-bottom: 40px;
+    }
+}
+
+.formulario {
+    padding: 50px;
+    background-color: var(--azul);
+}
+
+.texto-formulario h2,
+.input label,
+.password-olvidada a,
+.texto-formulario p {
+    color: var(--blanco);
+}
+
+.texto-formulario h2 {
+    font-size: 40px;
+    text-align: center;
+
+}
+
+.texto-formulario p {
+    font-size: 22px;
+    text-align: center;
+
+}
+
+.input label {
+    display: block;
+    font-size: 22px;
+    font-weight: bold;
+    margin: 20px 0;
+}
+
+.input input {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 5px;
+    outline: none;
+
+}
+
+.password-olvidada a {
+    display: inline-block;
+    margin-top: 20px;
+    font-size: 22px;
+}
+
+.mensaje-login {
+    background: #fff4d6;
+    border: 1px solid #f4c542;
+    border-left: 6px solid #f4c542;
+    border-radius: 8px;
+    color: #0b2545;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.4;
+    margin: 18px 0;
+    padding: 12px 14px;
+}
+
+.mensaje-login[hidden] {
+    display: none;
+}
+
+.input input[type="submit"] {
+    background-color: var(--azulgris);
+    color: var(--blanco);
+    font-size: 22px;
+    font-weight: bold;
+    border: none;
+    margin-top: 20px;
+    transition: background-color 0.3s ease-in-out;
+
+}
+
+.input input[type="submit"]:hover {
+
+    background-color: var(--azul-oscuro);
+    cursor: pointer;
+}
+
+
+

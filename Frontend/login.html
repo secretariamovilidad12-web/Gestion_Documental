@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css\normalize.css">
+    <link rel="stylesheet" href="css\style.css">
+
+</head>
+
+
+<body>
+
+    <div class="container-login">
+        <div class="imagen-Login">
+
+        </div>
+
+        <form id="container-login" class="formulario">
+            <div class="texto-formulario">
+                <h2>Portal Documental</h2>
+                <p>Acceso Seguro al Sistema</p>
+            </div>
+            <div id="mensajeLogin" class="mensaje-login" hidden></div>
+            <div class="input">
+                <label for="Usuario">Usuario</label>
+                <input type="text" id="Usuario" name="Usuario" placeholder="Ingrese su usuario">
+
+            </div>
+            <div class="input">
+                <label for="Contraseña">Contraseña</label>
+                <input type="password" id="Contraseña" name="Contraseña" placeholder="Ingrese su contraseña">
+            </div>
+            <div class="password-olvidada">
+                <a href="#">¿Necesita restablecer su contraseña?</a>
+            </div>
+            <div class="input">
+                <input type="submit" value="Iniciar Sesión">
+            </div>
+
+        </form>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>

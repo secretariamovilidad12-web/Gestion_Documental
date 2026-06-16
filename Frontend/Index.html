@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión Documental</title>
+
+    <link rel="stylesheet" href="css/indexstyle.css">
+</head>
+
+<body>
+
+    <div class="contenedor-principal">
+
+        <header class="encabezado">
+
+            <div class="marca-institucional">
+                <div class="marca-sello">TM</div>
+                <div>
+                    <p class="marca-entidad">Departamento de Tránsito y Movilidad</p>
+                    <h1>Sistema de Gestión Documental</h1>
+                </div>
+            </div>
+
+        </header>
+
+        <div class="contenido">
+
+            <button id="btnMenuMovil" class="btn-menu-movil">
+                &#9776;
+            </button>
+
+            <aside class="menu-lateral">
+
+                <h3>Menú principal</h3>
+
+                <button id="btnInicio" class="opcion-activa">
+                    <span class="menu-icono">&#8962;</span>
+                    <span>Inicio</span>
+                </button>
+
+                <button id="btnChat">
+                    <span class="menu-icono">&#9993;</span>
+                    <span>Chat Institucional</span>
+                </button>
+
+                <button id="btnPrestamos">
+                    <span class="menu-icono">&#8644;</span>
+                    <span>Préstamos</span>
+                </button>
+
+                <button id="btnUsuarios">
+                    <span class="menu-icono">&#9673;</span>
+                    <span>Usuarios</span>
+                </button>
+
+                <button id="btnAuditoria">
+                    <span class="menu-icono">&#9671;</span>
+                    <span>Auditoría</span>
+                </button>
+
+                <button class="btn-salir" onclick="cerrarSesion()">
+                    <span class="menu-icono">&#9099;</span>
+                    <span>Cerrar Sesión</span>
+                </button>
+
+            </aside>
+
+            <main class="area-trabajo">
+
+                <div id="contenidoPrincipal">
+
+                    <section class="tarjeta-bienvenida hero-inicio">
+                        <div class="hero-texto">
+                            <p class="etiqueta-modulo">Inicio</p>
+                            <h2>Bienvenido al Sistema de Gestión Documental</h2>
+
+                            <p>
+                                Administre la comunicación institucional, el control de préstamos
+                                y el inventario documental de manera centralizada. Consulte expedientes,
+                                realice seguimientos y mantenga organizada la información vehicular del
+                                Departamento de Tránsito y Movilidad.
+                            </p>
+
+                            <div class="indicadores-hero">
+                                <span>&#10003; Gestión documental</span>
+                                <span>&#10003; Control de préstamos</span>
+                                <span>&#10003; Comunicación institucional</span>
+                            </div>
+                        </div>
+
+                        <div class="hero-imagen">
+                            <img src="img/bg_index.png" alt="Archivo e inventario documental vehicular">
+                        </div>
+                    </section>
+
+                </div>
+
+            </main>
+
+        </div>
+
+        <footer class="pie">
+
+            <div class="tarjeta-usuario" aria-label="Usuario conectado">
+                <div class="avatar-usuario" id="avatarIniciales">U</div>
+                <div class="datos-usuario">
+                    <strong id="usuarioFooter">Usuario conectado</strong>
+                    <span id="rolUsuarioTexto">Rol institucional</span>
+                </div>
+            </div>
+
+        </footer>
+
+    </div>
+
+    <script src="dashboard.js"></script>
+
+</body>
+
+</html>
