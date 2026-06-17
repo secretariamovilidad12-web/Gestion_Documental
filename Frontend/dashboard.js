@@ -1,5 +1,7 @@
 console.log("dashboard.js cargado");
 
+const API_URL = "https://gestion-documental-api-erbn.onrender.com";
+
 const usuario = localStorage.getItem("usuario");
 
 if (!usuario) {
