@@ -1235,6 +1235,10 @@ body {
         flex-direction: column;
     }
 
+    .acciones-chat {
+        gap: 12px;
+    }
+
     .btn-chat-secundario {
         width: 100%;
     }
