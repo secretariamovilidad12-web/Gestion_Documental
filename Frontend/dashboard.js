@@ -507,7 +507,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             </thead>
                             <tbody id="tablaAuditoriaBody">
                                 <tr>
-                                    <td colspan="6">Cargando auditorÃ­a...</td>
+                                    <td colspan="6">Cargando auditoría...</td>
                                 </tr>
                             </tbody>
                         </table>
