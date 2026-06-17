@@ -81,22 +81,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 console.log("Bienvenido " + datos.usuario);
 
-                localStorage.setItem(
+                sessionStorage.setItem(
                     "usuario",
                     datos.usuario
                 );
 
-                localStorage.setItem(
+                sessionStorage.setItem(
                     "rol",
                     datos.rol
                 );
 
-                localStorage.setItem(
+                sessionStorage.setItem(
                     "id_usuario",
                     datos.id_usuario
                 );
 
-                localStorage.setItem(
+                sessionStorage.setItem(
                     "id_oficina",
                     datos.id_oficina
                 );

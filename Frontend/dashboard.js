@@ -2,7 +2,7 @@ console.log("dashboard.js cargado");
 
 const API_URL = "https://gestion-documental-api-erbn.onrender.com";
 
-const usuario = localStorage.getItem("usuario");
+const usuario = sessionStorage.getItem("usuario");
 
 if (!usuario) {
 
@@ -95,7 +95,7 @@ function inicializarNotificacionesChatGlobales() {
             JSON.parse(evento.data);
 
         const idUsuarioActual =
-            String(localStorage.getItem("id_usuario") || "");
+            String(sessionStorage.getItem("id_usuario") || "");
 
         const idUsuarioMensaje =
             String(mensaje.id_usuario || mensaje.idUsuario || "");
@@ -139,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
 
-    const rol = localStorage.getItem("rol");
+    const rol = sessionStorage.getItem("rol");
     const puedeVerDetallePrestamos =
         rol === "2" || rol === "3";
 
@@ -596,8 +596,8 @@ async function cargarPrestamosDocumentales() {
     const tablaPrestamosBody =
         document.getElementById("tablaPrestamosBody");
     const puedeVerDetallePrestamos =
-        localStorage.getItem("rol") === "2" ||
-        localStorage.getItem("rol") === "3";
+        sessionStorage.getItem("rol") === "2" ||
+        sessionStorage.getItem("rol") === "3";
     const totalColumnas =
         puedeVerDetallePrestamos ? 7 : 5;
 
@@ -673,8 +673,8 @@ async function cargarPrestamosDocumentales() {
             celdaEstado.appendChild(estado);
 
             if (
-                (localStorage.getItem("rol") === "2" ||
-                    localStorage.getItem("rol") === "3") &&
+                (sessionStorage.getItem("rol") === "2" ||
+                    sessionStorage.getItem("rol") === "3") &&
                 prestamo.estado === "activo"
             ) {
 
@@ -748,7 +748,7 @@ async function confirmarDevolucionPrestamo(idPrestamo) {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        id_usuario_recibe: Number(localStorage.getItem("id_usuario"))
+                        id_usuario_recibe: Number(sessionStorage.getItem("id_usuario"))
                     })
                 }
             );
@@ -1015,9 +1015,9 @@ function inicializarChatInstitucional() {
         return;
     }
 
-    const idUsuario = localStorage.getItem("id_usuario");
-    const idOficina = localStorage.getItem("id_oficina");
-    const rolUsuarioActual = localStorage.getItem("rol");
+    const idUsuario = sessionStorage.getItem("id_usuario");
+    const idOficina = sessionStorage.getItem("id_oficina");
+    const rolUsuarioActual = sessionStorage.getItem("rol");
     const puedeGestionarSolicitudes =
         rolUsuarioActual === "2" || rolUsuarioActual === "3";
     let mensajesChat = [];
@@ -1837,10 +1837,10 @@ function inicializarChatInstitucional() {
 
 function cerrarSesion() {
 
-    localStorage.removeItem("usuario");
-    localStorage.removeItem("rol");
-    localStorage.removeItem("id_usuario");
-    localStorage.removeItem("id_oficina");
+    sessionStorage.removeItem("usuario");
+    sessionStorage.removeItem("rol");
+    sessionStorage.removeItem("id_usuario");
+    sessionStorage.removeItem("id_oficina");
 
     window.location.href = "login.html";
 
@@ -1872,8 +1872,8 @@ function probarAccesoAdmin() {
     fetch(`${API_URL}/api/secure/admin`, {
         method: 'GET',
         headers: {
-            'x-user': localStorage.getItem('usuario'),
-            'x-role': localStorage.getItem('rol')
+            'x-user': sessionStorage.getItem('usuario'),
+            'x-role': sessionStorage.getItem('rol')
         }
     })
         .then(r => r.json())
