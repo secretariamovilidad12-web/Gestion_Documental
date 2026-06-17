@@ -908,7 +908,7 @@ async function cargarAuditoriaSistema() {
         if (eventos.length === 0) {
             tablaAuditoriaBody.innerHTML = `
                 <tr>
-                    <td colspan="6">Aun no hay eventos de auditoria</td>
+                    <td colspan="6">Aún no hay eventos de auditoria</td>
                 </tr>
             `;
             return;
