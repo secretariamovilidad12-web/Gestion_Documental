@@ -1123,9 +1123,10 @@ function inicializarChatInstitucional() {
         const fechaSolicitud =
             solicitud.fecha_solicitud
                 ? new Date(solicitud.fecha_solicitud)
-                    .toLocaleString("es-CO")
+                    .toLocaleString("es-CO", {
+                        timeZone: "America/Bogota"
+                    })
                 : "Sin fecha";
-
         [
 
             ["Placa", solicitud.placa],
