@@ -1,5 +1,5 @@
 console.log("script cargado");
-const API_URL = "https://TU-BACKEND.onrender.com";
+const API_URL = "https://gestion-documental-api-erbn.onrender.com";
 
 document.addEventListener("DOMContentLoaded", () => {
 
