@@ -199,9 +199,17 @@ router.post('/', async (req, res) => {
                 id_oficina_solicitante,
                 id_motivo,
                 placa,
-                observacion
+                observacion,
+                fecha_solicitud
             )
-            VALUES ($1, $2, $3, UPPER($4), $5)
+            VALUES (
+                 $1,
+                 $2,
+                 $3,
+                 UPPER($4),
+                 $5,
+                 timezone('America/Bogota', now())
+            )
             RETURNING *
             `,
             [
