@@ -674,8 +674,7 @@ async function cargarPrestamosDocumentales() {
             celdaEstado.appendChild(estado);
 
             if (
-                (sessionStorage.getItem("rol") === "2" ||
-                    sessionStorage.getItem("rol") === "3") &&
+                (sessionStorage.getItem("rol") === "3") &&
                 prestamo.estado === "activo"
             ) {
 

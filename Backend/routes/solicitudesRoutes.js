@@ -599,10 +599,29 @@ router.post('/prestamos/:idPrestamo/devolver', async (req, res) => {
         const idPrestamo = Number(req.params.idPrestamo);
         const idUsuarioRecibe = Number(req.body.id_usuario_recibe);
 
-        if (!await validarRolGestion(idUsuarioRecibe)) {
+        const usuarioResultado = await pool.query(
+            `
+            SELECT id_usuario, id_rol
+            FROM usuarios
+            WHERE id_usuario = $1
+            AND activo = true
+            `,
+            [idUsuarioRecibe]
+        );
+
+        const usuario = usuarioResultado.rows[0];
+
+        if (!usuario) {
             return res.status(403).json({
                 success: false,
-                message: 'No tiene permisos para confirmar devoluciones'
+                message: 'Usuario no válido'
+            });
+        }
+
+        if (Number(usuario.id_rol) !== 3) {
+            return res.status(403).json({
+                success: false,
+                message: 'Solo los gestores pueden confirmar devoluciones'
             });
         }
 
