@@ -1693,13 +1693,18 @@ function inicializarChatInstitucional() {
 
     function abrirModalSolicitud() {
 
-        if (!modalSolicitudCarpeta) {
+        if (!modalSolicitudCarpeta || !btnSolicitarCarpeta) {
             return;
         }
 
-        modalSolicitudCarpeta.hidden = false;
-        placaSolicitud?.focus();
+        if (btnSolicitarCarpeta.disabled) {
+            return;
+        }
 
+        btnSolicitarCarpeta.disabled = true;
+        modalSolicitudCarpeta.hidden = false;
+
+        placaSolicitud?.focus();
     }
 
     function cerrarModalSolicitud() {
@@ -1709,10 +1714,14 @@ function inicializarChatInstitucional() {
         }
 
         modalSolicitudCarpeta.hidden = true;
+
+        if (btnSolicitarCarpeta) {
+            btnSolicitarCarpeta.disabled = false;
+        }
+
         formSolicitudCarpeta?.reset();
 
     }
-
     async function cargarMotivosSolicitud() {
 
         if (!motivoSolicitud) {
