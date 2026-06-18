@@ -1166,7 +1166,7 @@ function inicializarChatInstitucional() {
 
             aprobar.type = "button";
             aprobar.className = "btn-aprobar-solicitud";
-            aprobar.textContent = "Aprobar";
+            aprobar.textContent = "Aceptar";
             aprobar.addEventListener("click", () =>
                 gestionarSolicitud(solicitud.id_solicitud, "aprobar")
             );
