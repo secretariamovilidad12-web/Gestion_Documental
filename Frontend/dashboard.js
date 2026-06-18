@@ -343,22 +343,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 </div>
 
-                <div class="acciones-chat">
+               <div class="acciones-chat">
 
-                    <button
-                        id="btnSolicitarCarpeta"
-                        class="btn-chat-principal"
-                        type="button">
-                        Solicitar carpeta
-                    </button>
+                 ${rol !== "2" ? `
+                 <button
+                     id="btnSolicitarCarpeta"
+                     class="btn-chat-principal"
+                     type="button">
+                     Solicitar carpeta
+                 </button>
+                 ` : ""}
 
-                <button
-                    id="btnActualizarChat"
-                    class="btn-chat-secundario"
-                    type="button">
-
-                    Actualizar
-
+                 <button
+                 id="btnActualizarChat"
+                 class="btn-chat-secundario"
+                 type="button">
+                 Actualizar
                 </button>
 
             </div>
