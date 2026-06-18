@@ -1057,9 +1057,9 @@ body {
 
 .acciones-solicitud {
     display: flex;
+    align-items: center;
+    gap: 12px;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 14px;
 }
 
 .acciones-solicitud button,

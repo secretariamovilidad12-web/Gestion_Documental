@@ -1207,8 +1207,8 @@ function inicializarChatInstitucional() {
             );
 
             acciones.appendChild(aprobar);
-            acciones.appendChild(selectRechazo);
             acciones.appendChild(rechazar);
+            acciones.appendChild(selectRechazo);
             articulo.appendChild(acciones);
 
         }
