@@ -579,6 +579,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // GESTOR
 
         btnAuditoria.style.display = "none";
+        btnUsuarios.style.display = "none";
 
     }
 
