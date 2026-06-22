@@ -1014,6 +1014,16 @@ function inicializarChatInstitucional() {
     if (!listaMensajes || !formularioChat || !mensajeChat) {
         return;
     }
+    mensajeChat.addEventListener("keydown", (evento) => {
+
+        if (evento.key !== "Enter" || evento.shiftKey) {
+            return;
+        }
+
+        evento.preventDefault();
+        formularioChat.requestSubmit();
+
+    });
 
     const idUsuario = sessionStorage.getItem("id_usuario");
     const idOficina = sessionStorage.getItem("id_oficina");
