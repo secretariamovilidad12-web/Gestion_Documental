@@ -273,12 +273,55 @@ document.addEventListener("DOMContentLoaded", () => {
         if (datosModulo.clave === "prestamos") {
 
             contenidoPrincipal.innerHTML = `
-        
-        <section class="vista-modulo modulo-prestamos">
 
-            <p class="etiqueta-modulo">Préstamos</p>
+              <section class="vista-modulo modulo-prestamos">
 
-            <h2>Control de Préstamos Documentales</h2>
+              <p class="etiqueta-modulo">Préstamos</p>
+
+              <h2>Control de Préstamos Documentales</h2>
+
+              <div class="filtros-prestamos">
+
+                <div class="campo-filtro-prestamo">
+
+                    <label for="busquedaPlacaPrestamo">
+                        Buscar placa
+                    </label>
+
+                    <input
+                        id="busquedaPlacaPrestamo"
+                        type="search"
+                        placeholder="Ej: ABC-123"
+                    >
+
+                </div>
+
+                <div class="campo-filtro-prestamo">
+
+                    <label for="filtroEstadoPrestamo">
+                        Estado
+                    </label>
+
+                    <select id="filtroEstadoPrestamo">
+
+                        <option value="">
+                            Todos
+                        </option>
+
+                        <option value="activo">
+                            Activo
+                        </option>
+
+                        <option value="devuelto">
+                            Devuelto
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
             <div class="tabla-contenedor">
 
 
@@ -320,6 +363,18 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
 
             cargarPrestamosDocumentales();
+
+            setTimeout(() => {
+
+                document
+                    .getElementById("busquedaPlacaPrestamo")
+                    ?.addEventListener("input", aplicarFiltrosPrestamos);
+
+                document
+                    .getElementById("filtroEstadoPrestamo")
+                    ?.addEventListener("change", aplicarFiltrosPrestamos);
+
+            }, 300);
 
             return;
         }
@@ -624,8 +679,11 @@ async function cargarPrestamosDocumentales() {
             throw new Error(datos.message || "No se pudieron cargar préstamos");
         }
 
-        const prestamos =
+        window.prestamosDocumentales =
             datos.prestamos || [];
+
+        const prestamos =
+            window.prestamosDocumentales;
 
         tablaPrestamosBody.innerHTML = "";
 
@@ -732,6 +790,49 @@ async function cargarPrestamosDocumentales() {
         `;
 
     }
+
+}
+function aplicarFiltrosPrestamos() {
+
+    const placaBusqueda =
+        document.getElementById("busquedaPlacaPrestamo")?.value
+            .toLowerCase()
+            .trim() || "";
+
+    const estadoFiltro =
+        document.getElementById("filtroEstadoPrestamo")?.value
+            .toLowerCase()
+            .trim() || "";
+
+    const filas =
+        document.querySelectorAll("#tablaPrestamosBody tr");
+
+    filas.forEach((fila) => {
+
+        const placa =
+            fila.children[1]?.textContent
+                ?.toLowerCase()
+                ?.trim() || "";
+
+        const estado =
+            fila.children[4]?.textContent
+                ?.toLowerCase()
+                ?.trim() || "";
+
+        const coincidePlaca =
+            !placaBusqueda ||
+            placa.includes(placaBusqueda);
+
+        const coincideEstado =
+            !estadoFiltro ||
+            estado.includes(estadoFiltro);
+
+        fila.style.display =
+            coincidePlaca && coincideEstado
+                ? ""
+                : "none";
+
+    });
 
 }
 
