@@ -6,7 +6,8 @@ const bcrypt = require('bcrypt');
         { usuario: 'yeison.admin', pass: 'Y3ison_@2026' },
         { usuario: 'yeison.gestor', pass: 'Y3isonG_@2026' },
         { usuario: 'eugenia', pass: 'Eug3nia_@2026' },
-        { usuario: 'lorena', pass: 'L0rena_@2026' }
+        { usuario: 'lorena', pass: 'L0rena_@2026' },
+        { usuario: 'Jose', pass: 'J0se_@2026' }
     ];
 
     for (const u of users) {
