@@ -633,6 +633,13 @@ document.addEventListener("DOMContentLoaded", () => {
                                     autocomplete="off"
                                     required
                                 >
+                                <p
+                                    id="mensajeValidacionPlaca"
+                                    class="mensaje-validacion-placa"
+                                    hidden
+                                >
+                                    La placa debe contener un guion medio (-). Ejemplo: YMK-213 o 342-GTM
+                                </p>
 
                                 <label for="motivoSolicitud">Motivo</label>
                                 <select id="motivoSolicitud" required>
@@ -1253,6 +1260,9 @@ function inicializarChatInstitucional() {
     const placaSolicitud =
         document.getElementById("placaSolicitud");
 
+    const mensajeValidacionPlaca =
+        document.getElementById("mensajeValidacionPlaca");
+
     const motivoSolicitud =
         document.getElementById("motivoSolicitud");
 
@@ -1312,6 +1322,45 @@ function inicializarChatInstitucional() {
 
         estadoChat.textContent = texto;
         estadoChat.classList.toggle("estado-chat-error", esError);
+
+    }
+
+    function esFormatoPlacaValido(placa) {
+
+        return /^[A-Z0-9]+-[A-Z0-9]+$/.test(
+            String(placa || "").trim()
+        );
+
+    }
+
+    function actualizarValidacionPlaca(forzarMensaje = false) {
+
+        if (!placaSolicitud || !mensajeValidacionPlaca) {
+            return true;
+        }
+
+        placaSolicitud.value =
+            String(placaSolicitud.value || "").toUpperCase();
+
+        const placa =
+            placaSolicitud.value.trim();
+
+        const esValida =
+            esFormatoPlacaValido(placa);
+
+        const mostrarError =
+            (forzarMensaje && !placa) ||
+            (placa.length > 0 && !esValida);
+
+        placaSolicitud.classList.toggle(
+            "input-placa-invalida",
+            mostrarError
+        );
+
+        mensajeValidacionPlaca.hidden =
+            !mostrarError;
+
+        return esValida;
 
     }
 
@@ -2039,6 +2088,7 @@ function inicializarChatInstitucional() {
         }
 
         formSolicitudCarpeta?.reset();
+        actualizarValidacionPlaca(false);
 
     }
     async function cargarMotivosSolicitud() {
@@ -2087,13 +2137,20 @@ function inicializarChatInstitucional() {
         evento.preventDefault();
 
         const placa =
-            placaSolicitud.value.trim();
+            placaSolicitud.value.trim().toUpperCase();
 
         const idMotivo =
             Number(motivoSolicitud.value);
 
+        placaSolicitud.value = placa;
+
         if (!placa || !idMotivo) {
+            actualizarValidacionPlaca(true);
             mostrarEstado("Complete placa y motivo", true);
+            return;
+        }
+
+        if (!actualizarValidacionPlaca(true)) {
             return;
         }
 
@@ -2157,6 +2214,12 @@ function inicializarChatInstitucional() {
 
     if (formSolicitudCarpeta) {
         formSolicitudCarpeta.addEventListener("submit", enviarSolicitudCarpeta);
+    }
+
+    if (placaSolicitud) {
+        placaSolicitud.addEventListener("input", () => {
+            actualizarValidacionPlaca(false);
+        });
     }
 
     document.addEventListener("click", ocultarMenuMensaje);

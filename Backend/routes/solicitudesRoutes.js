@@ -12,6 +12,12 @@ const MOTIVOS_RECHAZO = [
     'Préstamo activo'
 ];
 
+function esFormatoPlacaValido(placa) {
+    return /^[A-Z0-9]+-[A-Z0-9]+$/.test(
+        String(placa || '').trim()
+    );
+}
+
 async function obtenerConversacion(client) {
     const existente = await client.query(
         `
@@ -190,10 +196,17 @@ router.post('/', async (req, res) => {
             });
         }
 
-        await client.query('BEGIN');
-
         const placaNormalizada =
             String(placa).trim().toUpperCase();
+
+        if (!esFormatoPlacaValido(placaNormalizada)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Formato de placa inv\u00e1lido. Debe contener un guion medio (-).'
+            });
+        }
+
+        await client.query('BEGIN');
 
         const prestamoActivo = await client.query(
             `
