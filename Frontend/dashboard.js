@@ -164,6 +164,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnChat =
         document.getElementById("btnChat");
 
+    const idUsuarioActual =
+        localStorage.getItem("id_usuario");
+
+    let moduloActual = "inicio";
+    let mensajesPendientesChat = 0;
+    let audioChatContext = null;
+    let badgeChat = null;
+
+    if (btnChat) {
+        badgeChat = document.createElement("span");
+        badgeChat.id = "badgeChat";
+        badgeChat.className = "badge-chat";
+        badgeChat.hidden = true;
+        btnChat.appendChild(badgeChat);
+    }
     const rolesTexto = {
         "2": "Administrador",
         "3": "Gestor",
@@ -256,6 +271,30 @@ document.addEventListener("DOMContentLoaded", () => {
         botonActivo.classList.add("opcion-activa");
 
     }
+    function actualizarBadgeChat() {
+
+        if (!badgeChat) {
+            return;
+        }
+
+        if (mensajesPendientesChat <= 0) {
+            badgeChat.hidden = true;
+            badgeChat.textContent = "";
+            return;
+        }
+
+        badgeChat.hidden = false;
+        badgeChat.textContent =
+            mensajesPendientesChat > 9 ? "9+" : String(mensajesPendientesChat);
+
+    }
+    function limpiarNotificacionesChat() {
+
+        mensajesPendientesChat = 0;
+        actualizarBadgeChat();
+
+    }
+
     function reproducirSonidoChat() {
 
         try {
@@ -374,7 +413,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 mensajesPendientesChat += 1;
                 actualizarBadgeChat();
             }
-
         });
 
     }
@@ -502,6 +540,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (datosModulo.clave === "chat") {
+
+            limpiarNotificacionesChat();
 
             contenidoPrincipal.innerHTML = `
                 <section class="vista-modulo modulo-chat">

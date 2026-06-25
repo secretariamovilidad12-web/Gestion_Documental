@@ -122,6 +122,59 @@ body {
     font-weight: bold;
 }
 
+.badge-chat {
+    position: relative;
+    min-width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    padding: 0 7px;
+    border-radius: 999px;
+    border: 2px solid #ffffff;
+    background: #16a34a;
+    color: white;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18),
+        0 5px 12px rgba(22, 101, 52, 0.34);
+    animation: pulso-chat 1.35s ease-in-out infinite;
+}
+
+.badge-chat::after {
+    content: "";
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 7px;
+    height: 7px;
+    border: 1px solid white;
+    border-radius: 50%;
+    background: #bbf7d0;
+}
+
+.badge-chat[hidden] {
+    display: none;
+}
+
+@keyframes pulso-chat {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.16),
+            0 5px 12px rgba(22, 101, 52, 0.3);
+    }
+
+    50% {
+        transform: scale(1.07);
+        box-shadow: 0 0 0 5px rgba(22, 163, 74, 0.08),
+            0 6px 14px rgba(22, 101, 52, 0.36);
+    }
+}
+
 .menu-icono {
     width: 24px;
     height: 24px;
