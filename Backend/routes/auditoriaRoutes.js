@@ -25,19 +25,27 @@ router.get('/', async (req, res) => {
             ),
             mensajes_eliminados AS (
                 SELECT
-                    ('mensaje-eliminado-' || m.id_mensaje)::text AS id_evento,
-                    m.id_usuario,
-                    COALESCE(u.nombre_completo, u.usuario, 'Usuario') AS nombre_usuario,
-                    'Chat institucional' AS modulo,
-                    'Eliminar mensaje' AS accion,
-                    'Se elimino un mensaje del chat institucional.' AS descripcion,
-                    'mensaje' AS referencia_tipo,
-                    m.id_mensaje AS referencia_id,
-                    jsonb_build_object('contenido', m.contenido) AS datos,
-                    m.fecha_envio AS fecha_evento
+                 ('mensaje-eliminado-' || m.id_mensaje)::text AS id_evento,
+                 m.id_usuario,
+                 COALESCE(u.nombre_completo, u.usuario, 'Usuario') AS nombre_usuario,
+                 'Chat institucional' AS modulo,
+                 'Eliminar mensaje' AS accion,
+                 'Se elimino un mensaje del chat institucional.' AS descripcion,
+                 'mensaje' AS referencia_tipo,
+                 m.id_mensaje AS referencia_id,
+                 jsonb_build_object('contenido', m.contenido) AS datos,
+                 m.fecha_envio AS fecha_evento
                 FROM mensajes m
                 LEFT JOIN usuarios u ON u.id_usuario = m.id_usuario
                 WHERE COALESCE(m.eliminado, false) = true
+                     AND NOT EXISTS (
+                       SELECT 1
+                       FROM auditoria_eventos ae
+                       WHERE ae.modulo = 'Chat institucional'
+                          AND ae.accion = 'Eliminar mensaje'
+                          AND ae.referencia_tipo = 'mensaje'
+                          AND ae.referencia_id = m.id_mensaje
+                   )
             ),
             solicitudes_gestionadas AS (
                 SELECT
@@ -83,8 +91,16 @@ router.get('/', async (req, res) => {
                     s.fecha_solicitud AS fecha_evento
                 FROM solicitudes_carpeta s
                 LEFT JOIN usuarios u ON u.id_usuario = s.id_usuario_solicita
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM auditoria_eventos ae
+                    WHERE ae.modulo = 'Solicitudes de carpeta'
+                    AND ae.accion = 'Crear solicitud'
+                    AND ae.referencia_tipo = 'solicitud_carpeta'
+                    AND ae.referencia_id = s.id_solicitud
+                )
             ),
-            prestamos_devueltos AS (
+           prestamos_devueltos AS (
                 SELECT
                     ('devolucion-' || d.id_devolucion)::text AS id_evento,
                     d.id_usuario_recibe AS id_usuario,
@@ -98,8 +114,16 @@ router.get('/', async (req, res) => {
                     d.fecha_devolucion AS fecha_evento
                 FROM devoluciones d
                 LEFT JOIN usuarios u ON u.id_usuario = d.id_usuario_recibe
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM auditoria_eventos ae
+                    WHERE ae.modulo = 'Prestamos documentales'
+                    AND ae.accion = 'Confirmar devolucion'
+                    AND ae.referencia_tipo = 'prestamo_documental'
+                    AND ae.referencia_id = d.id_prestamo
+                )
             ),
-            eventos_unificados AS (
+           eventos_unificados AS (
                 SELECT * FROM eventos_registrados
                 UNION ALL
                 SELECT * FROM mensajes_eliminados
@@ -110,7 +134,7 @@ router.get('/', async (req, res) => {
                 UNION ALL
                 SELECT * FROM prestamos_devueltos
             )
-            SELECT DISTINCT ON (modulo, accion, referencia_tipo, referencia_id, fecha_evento)
+            SELECT DISTINCT ON (modulo, accion, referencia_tipo, referencia_id)
                 id_evento,
                 id_usuario,
                 nombre_usuario,
@@ -123,7 +147,7 @@ router.get('/', async (req, res) => {
                 fecha_evento
             FROM eventos_unificados
             WHERE fecha_evento IS NOT NULL
-            ORDER BY modulo, accion, referencia_tipo, referencia_id, fecha_evento, id_evento
+            ORDER BY modulo, accion, referencia_tipo, referencia_id, fecha_evento DESC, id_evento DESC
             LIMIT 500
         `);
 
