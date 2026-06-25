@@ -2086,12 +2086,16 @@ function inicializarChatInstitucional() {
             }
 
             cerrarModalSolicitud();
-            mostrarEstado("Solicitud registrada en el chat");
+            mostrarEstado("✔ Solicitud realizada");
 
         } catch (error) {
 
             console.error(error);
-            mostrarEstado(error.message || "Error al registrar solicitud", true);
+            const mensajeError =
+                error.message === "La carpeta ya tiene un préstamo activo"
+                    ? "✖ Solicitud denegada. La carpeta ya tiene un préstamo activo."
+                    : (error.message || "Error al registrar solicitud");
+            mostrarEstado(mensajeError, true);
 
         }
 

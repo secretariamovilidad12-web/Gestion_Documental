@@ -192,6 +192,29 @@ router.post('/', async (req, res) => {
 
         await client.query('BEGIN');
 
+        const placaNormalizada =
+            String(placa).trim().toUpperCase();
+
+        const prestamoActivo = await client.query(
+            `
+            SELECT id_prestamo
+            FROM prestamos_documentales
+            WHERE UPPER(placa) = $1
+            AND activo = true
+            LIMIT 1
+            `,
+            [placaNormalizada]
+        );
+
+        if (prestamoActivo.rows.length > 0) {
+            await client.query('ROLLBACK');
+
+            return res.status(409).json({
+                success: false,
+                message: 'La carpeta ya tiene un préstamo activo'
+            });
+        }
+
         const solicitud = await client.query(
             `
             INSERT INTO solicitudes_carpeta (
@@ -216,7 +239,7 @@ router.post('/', async (req, res) => {
                 id_usuario_solicita,
                 id_oficina_solicitante,
                 id_motivo,
-                String(placa).trim(),
+                placaNormalizada,
                 observacion || null
             ]
         );
