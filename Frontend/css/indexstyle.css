@@ -978,6 +978,50 @@ body {
     color: #a33232;
 }
 
+.contenedor-toast-sistema {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 10020;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast-sistema {
+    min-width: 280px;
+    max-width: min(420px, calc(100vw - 32px));
+    padding: 14px 16px;
+    border-radius: 10px;
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.toast-sistema.toast-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast-sistema.toast-oculto {
+    opacity: 0;
+    transform: translateY(8px);
+}
+
+.toast-success {
+    background: #2f8f72;
+}
+
+.toast-error {
+    background: #b63b3b;
+}
+
 .buscador-chat {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;

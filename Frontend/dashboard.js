@@ -1315,6 +1315,48 @@ function inicializarChatInstitucional() {
 
     }
 
+    function mostrarToast(tipo, mensaje) {
+
+        let contenedorToast =
+            document.getElementById("contenedorToastSistema");
+
+        if (!contenedorToast) {
+
+            contenedorToast =
+                document.createElement("div");
+
+            contenedorToast.id = "contenedorToastSistema";
+            contenedorToast.className = "contenedor-toast-sistema";
+            document.body.appendChild(contenedorToast);
+
+        }
+
+        const toast =
+            document.createElement("div");
+
+        toast.className = `toast-sistema toast-${tipo}`;
+        toast.textContent = mensaje;
+        contenedorToast.appendChild(toast);
+
+        requestAnimationFrame(() => {
+            toast.classList.add("toast-visible");
+        });
+
+        const ocultarToast = () => {
+
+            toast.classList.remove("toast-visible");
+            toast.classList.add("toast-oculto");
+
+            window.setTimeout(() => {
+                toast.remove();
+            }, 300);
+
+        };
+
+        window.setTimeout(ocultarToast, 4000);
+
+    }
+
     function ocultarMenuMensaje() {
 
         if (!menuMensajeChat) {
@@ -2086,16 +2128,16 @@ function inicializarChatInstitucional() {
             }
 
             cerrarModalSolicitud();
-            mostrarEstado("✔ Solicitud realizada");
+            mostrarToast("success", "\u2714 Solicitud realizada");
 
         } catch (error) {
 
             console.error(error);
             const mensajeError =
                 error.message === "La carpeta ya tiene un préstamo activo"
-                    ? "✖ Solicitud denegada. La carpeta ya tiene un préstamo activo."
+                    ? "\u2716 Solicitud denegada. La carpeta ya tiene un préstamo activo."
                     : (error.message || "Error al registrar solicitud");
-            mostrarEstado(mensajeError, true);
+            mostrarToast("error", mensajeError);
 
         }
 
