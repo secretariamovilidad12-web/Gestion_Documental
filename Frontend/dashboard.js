@@ -256,6 +256,128 @@ document.addEventListener("DOMContentLoaded", () => {
         botonActivo.classList.add("opcion-activa");
 
     }
+    function reproducirSonidoChat() {
+
+        try {
+
+            const AudioContext =
+                window.AudioContext || window.webkitAudioContext;
+
+            if (!AudioContext) {
+                return;
+            }
+
+            if (!audioChatContext) {
+                audioChatContext = new AudioContext();
+            }
+
+            if (audioChatContext.state === "suspended") {
+                audioChatContext.resume();
+            }
+
+            const tocarTono = (frecuencia, inicio, duracion, volumen) => {
+
+                const oscilador =
+                    audioChatContext.createOscillator();
+
+                const ganancia =
+                    audioChatContext.createGain();
+
+                oscilador.type = "triangle";
+                oscilador.frequency.setValueAtTime(
+                    frecuencia,
+                    audioChatContext.currentTime + inicio
+                );
+
+                ganancia.gain.setValueAtTime(
+                    0.0001,
+                    audioChatContext.currentTime + inicio
+                );
+                ganancia.gain.exponentialRampToValueAtTime(
+                    volumen,
+                    audioChatContext.currentTime + inicio + 0.018
+                );
+                ganancia.gain.exponentialRampToValueAtTime(
+                    0.0001,
+                    audioChatContext.currentTime + inicio + duracion
+                );
+
+                oscilador.connect(ganancia);
+                ganancia.connect(audioChatContext.destination);
+                oscilador.start(audioChatContext.currentTime + inicio);
+                oscilador.stop(audioChatContext.currentTime + inicio + duracion);
+
+            };
+
+            tocarTono(740, 0, 0.16, 0.28);
+            tocarTono(980, 0.12, 0.2, 0.24);
+
+        } catch (error) {
+
+            console.warn("No fue posible reproducir sonido del chat", error);
+
+        }
+
+    }
+    function prepararSonidoChat() {
+
+        try {
+
+            const AudioContext =
+                window.AudioContext || window.webkitAudioContext;
+
+            if (!AudioContext) {
+                return;
+            }
+
+            if (!audioChatContext) {
+                audioChatContext = new AudioContext();
+            }
+
+            if (audioChatContext.state === "suspended") {
+                audioChatContext.resume();
+            }
+
+        } catch (error) {
+
+            console.warn("No fue posible preparar sonido del chat", error);
+
+        }
+
+    }
+    function conectarNotificacionesChat() {
+
+        if (!window.EventSource || window.chatNotificacionesEventSource) {
+            return;
+        }
+
+        const eventosChat =
+            new EventSource(`${API_URL}/api/chat/eventos`);
+
+        window.chatNotificacionesEventSource = eventosChat;
+
+        eventosChat.addEventListener("mensaje-creado", (evento) => {
+
+            const mensajeNuevo =
+                JSON.parse(evento.data);
+
+            const esPropio =
+                String(mensajeNuevo.id_usuario || "") === String(idUsuarioActual || "");
+
+            if (esPropio) {
+                return;
+            }
+
+            reproducirSonidoChat();
+
+            if (moduloActual !== "chat") {
+                mensajesPendientesChat += 1;
+                actualizarBadgeChat();
+            }
+
+        });
+
+    }
 
     function cargarModulo(datosModulo) {
 
@@ -644,6 +766,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // Ve todo
 
     }
+    conectarNotificacionesChat();
+
+    document.addEventListener("click", prepararSonidoChat, { once: true });
+    document.addEventListener("keydown", prepararSonidoChat, { once: true });
 
 });
 
