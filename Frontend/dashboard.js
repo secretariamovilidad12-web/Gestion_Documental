@@ -161,11 +161,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnInicio =
         document.getElementById("btnInicio");
 
+
     const btnChat =
         document.getElementById("btnChat");
 
     const idUsuarioActual =
-        localStorage.getItem("id_usuario");
+        sessionStorage.getItem("id_usuario");
 
     let moduloActual = "inicio";
     let mensajesPendientesChat = 0;
@@ -358,6 +359,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
     }
+
+
     function prepararSonidoChat() {
 
         try {
@@ -414,6 +417,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 actualizarBadgeChat();
             }
         });
+
+        eventosChat.onerror = () => {
+            window.chatNotificacionesEventSource = null;
+        };
 
     }
 

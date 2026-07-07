@@ -11,17 +11,36 @@ router.get('/', async (req, res) => {
         const resultado = await pool.query(`
             WITH eventos_registrados AS (
                 SELECT
-                    id_evento::text AS id_evento,
-                    id_usuario,
-                    COALESCE(nombre_usuario, 'Sistema') AS nombre_usuario,
-                    modulo,
-                    accion,
-                    descripcion,
-                    referencia_tipo,
-                    referencia_id,
-                    datos,
-                    fecha_evento
+                    ae.id_evento::text AS id_evento,
+                    ae.id_usuario,
+                    COALESCE(ae.nombre_usuario, 'Sistema') AS nombre_usuario,
+                    ae.modulo,
+                    ae.accion,
+                    CASE
+                        WHEN ae.modulo = 'Prestamos documentales'
+                        AND ae.accion = 'Confirmar devolucion'
+                        AND ae.referencia_tipo = 'prestamo_documental'
+                        AND p.placa IS NOT NULL
+                        THEN 'Se confirmo la devolucion de la carpeta con placa ' || p.placa || '.'
+                        ELSE ae.descripcion
+                    END AS descripcion,
+                    ae.referencia_tipo,
+                    ae.referencia_id,
+                    CASE
+                        WHEN ae.modulo = 'Prestamos documentales'
+                        AND ae.accion = 'Confirmar devolucion'
+                        AND ae.referencia_tipo = 'prestamo_documental'
+                        AND p.placa IS NOT NULL
+                        THEN COALESCE(ae.datos, '{}'::jsonb) || jsonb_build_object('placa', p.placa)
+                        ELSE ae.datos
+                    END AS datos,
+                    ae.fecha_evento
                 FROM auditoria_eventos
+                LEFT JOIN prestamos_documentales p
+                    ON ae.modulo = 'Prestamos documentales'
+                    AND ae.accion = 'Confirmar devolucion'
+                    AND ae.referencia_tipo = 'prestamo_documental'
+                    AND p.id_prestamo = ae.referencia_id
             ),
             mensajes_eliminados AS (
                 SELECT
@@ -107,12 +126,13 @@ router.get('/', async (req, res) => {
                     COALESCE(u.nombre_completo, u.usuario, 'Usuario') AS nombre_usuario,
                     'Prestamos documentales' AS modulo,
                     'Confirmar devolucion' AS accion,
-                    'Se confirmo la devolucion del prestamo ' || d.id_prestamo || '.' AS descripcion,
+                    'Se confirmo la devolucion de la carpeta con placa ' || p.placa || '.' AS descripcion,
                     'prestamo_documental' AS referencia_tipo,
                     d.id_prestamo AS referencia_id,
-                    jsonb_build_object('id_devolucion', d.id_devolucion, 'observacion', d.observacion) AS datos,
+                    jsonb_build_object('id_devolucion', d.id_devolucion, 'placa', p.placa, 'observacion', d.observacion) AS datos,
                     d.fecha_devolucion AS fecha_evento
                 FROM devoluciones d
+                JOIN prestamos_documentales p ON p.id_prestamo = d.id_prestamo
                 LEFT JOIN usuarios u ON u.id_usuario = d.id_usuario_recibe
                 WHERE NOT EXISTS (
                     SELECT 1

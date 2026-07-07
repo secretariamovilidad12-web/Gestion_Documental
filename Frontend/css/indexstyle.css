@@ -826,6 +826,7 @@ body {
     font-family: inherit;
 }
 
+
 .campo-filtro-prestamo input:focus,
 .campo-filtro-prestamo select:focus {
     outline: none;
