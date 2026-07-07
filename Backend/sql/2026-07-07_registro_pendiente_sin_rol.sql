@@ -1,0 +1,2 @@
+ALTER TABLE usuarios
+ALTER COLUMN id_rol DROP NOT NULL;

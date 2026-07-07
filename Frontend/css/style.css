@@ -33,6 +33,13 @@ body {
 
 }
 
+.body-registro {
+    height: auto;
+    min-height: 100vh;
+    align-items: flex-start;
+    padding: 40px 0;
+}
+
 .imagen-Login {
     background-image: url(../img/bg_login.png);
     background-position: center center;
@@ -121,6 +128,13 @@ body {
 
 }
 
+.input select {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 5px;
+    outline: none;
+}
+
 .password-olvidada a {
     display: inline-block;
     margin-top: 20px;
@@ -142,6 +156,22 @@ body {
 
 .mensaje-login[hidden] {
     display: none;
+}
+
+.acciones-acceso {
+    margin-top: 18px;
+    text-align: center;
+}
+
+.enlace-secundario {
+    color: var(--blanco);
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.enlace-secundario:hover {
+    text-decoration: underline;
 }
 
 .input input[type="submit"] {

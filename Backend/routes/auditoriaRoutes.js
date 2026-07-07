@@ -1,10 +1,11 @@
 const express = require('express');
 const pool = require('../config/database');
 const { asegurarTablaAuditoria } = require('../services/auditoriaService');
+const { requerirSesion } = require('../services/sesionService');
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
+router.get('/', requerirSesion({ rolesPermitidos: [2] }), async (req, res) => {
     try {
         await asegurarTablaAuditoria();
 

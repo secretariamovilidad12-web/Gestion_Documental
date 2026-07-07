@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../config/database');
 const chatRoutes = require('./chatRoutes');
 const { registrarAuditoria } = require('../services/auditoriaService');
+const { requerirSesion } = require('../services/sesionService');
 
 const ID_CONVERSACION_CHAT = Number(process.env.CHAT_ID_CONVERSACION || 1);
 const MOTIVOS_RECHAZO = [
@@ -104,7 +105,7 @@ async function validarRolGestion(idUsuario) {
         (String(usuario.id_rol) === '2' || String(usuario.id_rol) === '3');
 }
 
-router.get('/motivos', async (req, res) => {
+router.get('/motivos', requerirSesion(), async (req, res) => {
     try {
         const resultado = await pool.query(
             `
@@ -128,7 +129,7 @@ router.get('/motivos', async (req, res) => {
     }
 });
 
-router.get('/prestamos', async (req, res) => {
+router.get('/prestamos', requerirSesion(), async (req, res) => {
     try {
         const resultado = await pool.query(
             `
@@ -177,7 +178,7 @@ router.get('/prestamos', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', requerirSesion(), async (req, res) => {
     const client = await pool.connect();
 
     try {
@@ -318,7 +319,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.put('/:idSolicitud/aprobar', async (req, res) => {
+router.put('/:idSolicitud/aprobar', requerirSesion(), async (req, res) => {
     const client = await pool.connect();
 
     try {
@@ -510,7 +511,7 @@ router.put('/:idSolicitud/aprobar', async (req, res) => {
     }
 });
 
-router.put('/:idSolicitud/rechazar', async (req, res) => {
+router.put('/:idSolicitud/rechazar', requerirSesion(), async (req, res) => {
     const client = await pool.connect();
 
     try {
@@ -628,7 +629,7 @@ router.put('/:idSolicitud/rechazar', async (req, res) => {
     }
 });
 
-router.post('/prestamos/:idPrestamo/devolver', async (req, res) => {
+router.post('/prestamos/:idPrestamo/devolver', requerirSesion(), async (req, res) => {
     const client = await pool.connect();
 
     try {

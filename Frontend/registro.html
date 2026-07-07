@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Registro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css\normalize.css">
+    <link rel="stylesheet" href="css\style.css">
+</head>
+
+<body class="body-registro">
+
+    <div class="container-login">
+        <div class="imagen-Login">
+
+        </div>
+
+        <form id="formRegistro" class="formulario">
+            <div class="texto-formulario">
+                <h2>Solicitud de Registro</h2>
+                <p>Complete sus datos para solicitar acceso al sistema</p>
+            </div>
+
+            <div id="mensajeRegistro" class="mensaje-login" hidden></div>
+
+            <div class="input">
+                <label for="NombreCompleto">Nombre completo</label>
+                <input type="text" id="NombreCompleto" placeholder="Ingrese su nombre completo" required>
+            </div>
+
+            <div class="input">
+                <label for="UsuarioRegistro">Usuario</label>
+                <input type="text" id="UsuarioRegistro" placeholder="Ingrese su usuario" required>
+            </div>
+
+            <div class="input">
+                <label for="CorreoRegistro">Correo</label>
+                <input type="email" id="CorreoRegistro" placeholder="Ingrese su correo" required>
+            </div>
+
+            <div class="input">
+                <label for="OficinaRegistro">Oficina</label>
+                <select id="OficinaRegistro" required>
+                    <option value="">Seleccione una oficina</option>
+                </select>
+            </div>
+
+            <div class="input">
+                <label for="PasswordRegistro">Contraseña</label>
+                <input type="password" id="PasswordRegistro" placeholder="Mínimo 8 caracteres" required>
+            </div>
+
+            <div class="input">
+                <input type="submit" value="Enviar solicitud">
+            </div>
+
+            <div class="acciones-acceso">
+                <a href="login.html" class="enlace-secundario">Volver al login</a>
+            </div>
+        </form>
+    </div>
+
+    <script src="registro.js"></script>
+</body>
+
+</html>

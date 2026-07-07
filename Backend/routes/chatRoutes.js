@@ -1,6 +1,7 @@
 const express = require('express');
 const pool = require('../config/database');
 const { registrarAuditoria } = require('../services/auditoriaService');
+const { requerirSesion } = require('../services/sesionService');
 
 const router = express.Router();
 
@@ -85,7 +86,7 @@ async function obtenerContextoChat(idUsuarioSolicitado) {
     }
 }
 
-router.get('/mensajes', async (req, res) => {
+router.get('/mensajes', requerirSesion(), async (req, res) => {
     try {
         const resultado = await pool.query(`
             SELECT
@@ -151,7 +152,7 @@ router.get('/mensajes', async (req, res) => {
     }
 });
 
-router.get('/eventos', (req, res) => {
+router.get('/eventos', requerirSesion(), (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -166,7 +167,7 @@ router.get('/eventos', (req, res) => {
     });
 });
 
-router.post('/mensajes', async (req, res) => {
+router.post('/mensajes', requerirSesion(), async (req, res) => {
     try {
         const {
             id_usuario,
@@ -254,7 +255,7 @@ router.post('/mensajes', async (req, res) => {
     }
 });
 
-router.delete('/mensajes/:idMensaje', async (req, res) => {
+router.delete('/mensajes/:idMensaje', requerirSesion(), async (req, res) => {
     try {
         const idMensaje = Number(req.params.idMensaje);
         const idUsuario = Number(req.body.id_usuario);

@@ -101,6 +101,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     datos.id_oficina
                 );
 
+                sessionStorage.setItem(
+                    "token_sesion",
+                    datos.token_sesion
+                );
+
+                sessionStorage.setItem(
+                    "ultimo_acceso",
+                    datos.ultimo_acceso || ""
+                );
+
                 window.location.href = "index.html";
 
             } else {

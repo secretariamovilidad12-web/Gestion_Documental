@@ -2,10 +2,115 @@ console.log("dashboard.js cargado");
 
 const API_URL = "https://gestion-documental-api-erbn.onrender.com";
 
+function limpiarSesionLocal() {
+
+    sessionStorage.removeItem("usuario");
+    sessionStorage.removeItem("rol");
+    sessionStorage.removeItem("id_usuario");
+    sessionStorage.removeItem("id_oficina");
+    sessionStorage.removeItem("token_sesion");
+    sessionStorage.removeItem("ultimo_acceso");
+
+}
+
+function obtenerTokenSesion() {
+
+    return String(
+        sessionStorage.getItem("token_sesion") || ""
+    );
+
+}
+
+function obtenerHeadersSesion(incluirJson = false) {
+
+    const headers = {};
+
+    if (incluirJson) {
+        headers["Content-Type"] = "application/json";
+    }
+
+    const idUsuario =
+        sessionStorage.getItem("id_usuario");
+
+    const tokenSesion =
+        obtenerTokenSesion();
+
+    if (idUsuario) {
+        headers["x-id-usuario"] = idUsuario;
+    }
+
+    if (tokenSesion) {
+        headers["x-session-token"] = tokenSesion;
+    }
+
+    return headers;
+
+}
+
+function obtenerQuerySesion() {
+
+    const parametros =
+        new URLSearchParams();
+
+    const idUsuario =
+        sessionStorage.getItem("id_usuario");
+
+    const tokenSesion =
+        obtenerTokenSesion();
+
+    if (idUsuario) {
+        parametros.set("id_usuario", idUsuario);
+    }
+
+    if (tokenSesion) {
+        parametros.set("token_sesion", tokenSesion);
+    }
+
+    return parametros.toString();
+
+}
+
+async function fetchAutenticado(url, opciones = {}) {
+
+    const respuesta =
+        await fetch(url, {
+            ...opciones,
+            headers: {
+                ...(opciones.headers || {}),
+                ...obtenerHeadersSesion()
+            }
+        });
+
+    if (respuesta.status === 401) {
+        limpiarSesionLocal();
+        window.location.href = "login.html";
+    }
+
+    return respuesta;
+
+}
+
+function iniciarHeartbeatSesion() {
+
+    if (window.heartbeatSesionTimer) {
+        window.clearInterval(window.heartbeatSesionTimer);
+    }
+
+    window.heartbeatSesionTimer = window.setInterval(() => {
+        fetchAutenticado(`${API_URL}/api/auth/heartbeat`)
+            .catch((error) => {
+                console.error(error);
+            });
+    }, 5 * 60 * 1000);
+
+}
+
 const usuario = sessionStorage.getItem("usuario");
+const tokenSesionActivo = obtenerTokenSesion();
 
-if (!usuario) {
+if (!usuario || !tokenSesionActivo) {
 
+    limpiarSesionLocal();
     window.location.href = "login.html";
 
 }
@@ -84,7 +189,7 @@ function inicializarNotificacionesChatGlobales() {
 
     const eventosChat =
         new EventSource(
-            `${API_URL}/api/chat/eventos`
+            `${API_URL}/api/chat/eventos?${obtenerQuerySesion()}`
         );
 
     window.chatNotificacionesEventSource = eventosChat;
@@ -144,6 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
         rol === "2" || rol === "3";
 
     inicializarNotificacionesChatGlobales();
+    iniciarHeartbeatSesion();
 
     const avatarIniciales =
         document.getElementById("avatarIniciales");
@@ -394,7 +500,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const eventosChat =
-            new EventSource(`${API_URL}/api/chat/eventos`);
+            new EventSource(`${API_URL}/api/chat/eventos?${obtenerQuerySesion()}`);
 
         window.chatNotificacionesEventSource = eventosChat;
 
@@ -686,6 +792,31 @@ document.addEventListener("DOMContentLoaded", () => {
                     <p class="etiqueta-modulo">Usuarios</p>
                     <h2>Usuarios registrados</h2>
                     <p>Listado de usuarios actuales del sistema.</p>
+                    <div id="estadoUsuarios" class="estado-panel" hidden></div>
+
+                    ${rol === "2" ? `
+                    <div class="tabla-contenedor tabla-panel">
+                        <table class="tabla-sistema">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Usuario</th>
+                                    <th>Nombre</th>
+                                    <th>Correo</th>
+                                    <th>Rol a asignar</th>
+                                    <th>Oficina</th>
+                                    <th>Fecha registro</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaUsuariosPendientesBody">
+                                <tr>
+                                    <td colspan="8">Cargando solicitudes pendientes...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    ` : ""}
 
                     <div class="tabla-contenedor tabla-panel">
                         <table class="tabla-sistema">
@@ -712,6 +843,10 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
 
             cargarUsuariosSistema();
+
+            if (rol === "2") {
+                cargarSolicitudesRegistroPendientes();
+            }
 
             return;
         }
@@ -850,7 +985,7 @@ async function cargarPrestamosDocumentales() {
         `;
 
         const respuesta =
-            await fetch(`${API_URL}/api/solicitudes-carpeta/prestamos`);
+            await fetchAutenticado(`${API_URL}/api/solicitudes-carpeta/prestamos`);
 
         const datos =
             await respuesta.json();
@@ -1021,13 +1156,11 @@ async function confirmarDevolucionPrestamo(idPrestamo) {
     try {
 
         const respuesta =
-            await fetch(
+            await fetchAutenticado(
                 `${API_URL}/api/solicitudes-carpeta/prestamos/${idPrestamo}/devolver`,
                 {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: obtenerHeadersSesion(true),
                     body: JSON.stringify({
                         id_usuario_recibe: Number(sessionStorage.getItem("id_usuario"))
                     })
@@ -1064,6 +1197,52 @@ function formatearFechaTabla(fecha) {
 
 }
 
+function obtenerEstadoRegistroUsuario(usuarioSistema) {
+
+    const estadoRegistro =
+        String(
+            usuarioSistema.estado_registro ||
+            (usuarioSistema.activo ? "ACTIVO" : "INACTIVO")
+        ).toUpperCase();
+
+    const mapaEstados = {
+        ACTIVO: {
+            texto: "Activo",
+            clase: "estado-activo"
+        },
+        PENDIENTE: {
+            texto: "Pendiente",
+            clase: "estado-pendiente"
+        },
+        RECHAZADO: {
+            texto: "Rechazado",
+            clase: "estado-rechazado"
+        },
+        INACTIVO: {
+            texto: "Inactivo",
+            clase: "estado-inactivo"
+        }
+    };
+
+    return mapaEstados[estadoRegistro] || mapaEstados.INACTIVO;
+
+}
+
+function mostrarEstadoUsuarios(texto, esError = false) {
+
+    const estadoUsuarios =
+        document.getElementById("estadoUsuarios");
+
+    if (!estadoUsuarios) {
+        return;
+    }
+
+    estadoUsuarios.hidden = false;
+    estadoUsuarios.textContent = texto;
+    estadoUsuarios.classList.toggle("estado-panel-error", esError);
+
+}
+
 async function cargarUsuariosSistema() {
 
     const tablaUsuariosBody =
@@ -1076,7 +1255,7 @@ async function cargarUsuariosSistema() {
     try {
 
         const respuesta =
-            await fetch(`${API_URL}/api/usuarios`);
+            await fetchAutenticado(`${API_URL}/api/usuarios`);
 
         const datos =
             await respuesta.json();
@@ -1127,10 +1306,13 @@ async function cargarUsuariosSistema() {
             const estado =
                 document.createElement("span");
 
+            const estadoRegistro =
+                obtenerEstadoRegistroUsuario(usuarioSistema);
+
             estado.className =
-                `estado-registro ${usuarioSistema.activo ? "estado-activo" : "estado-inactivo"}`;
+                `estado-registro ${estadoRegistro.clase}`;
             estado.textContent =
-                usuarioSistema.activo ? "Activo" : "Inactivo";
+                estadoRegistro.texto;
 
             celdaEstado.appendChild(estado);
             fila.appendChild(celdaEstado);
@@ -1160,6 +1342,212 @@ async function cargarUsuariosSistema() {
 
 }
 
+async function cargarSolicitudesRegistroPendientes() {
+
+    const tablaPendientesBody =
+        document.getElementById("tablaUsuariosPendientesBody");
+
+    if (!tablaPendientesBody) {
+        return;
+    }
+
+    try {
+
+        const respuesta =
+            await fetchAutenticado(`${API_URL}/api/usuarios/pendientes`);
+
+        const datos =
+            await respuesta.json();
+
+        if (!datos.success) {
+            throw new Error(datos.message || "No se pudieron cargar las solicitudes pendientes");
+        }
+
+        const usuariosPendientes =
+            datos.usuarios || [];
+
+        tablaPendientesBody.innerHTML = "";
+
+        if (usuariosPendientes.length === 0) {
+            tablaPendientesBody.innerHTML = `
+                <tr>
+                    <td colspan="8">No hay solicitudes pendientes</td>
+                </tr>
+            `;
+            return;
+        }
+
+        const rolesDisponibles =
+            datos.roles || [];
+
+        usuariosPendientes.forEach((usuarioPendiente) => {
+
+            const fila =
+                document.createElement("tr");
+
+            [
+                usuarioPendiente.id_usuario,
+                usuarioPendiente.usuario,
+                usuarioPendiente.nombre_completo,
+                usuarioPendiente.correo
+            ].forEach((valor) => {
+
+                const celda =
+                    document.createElement("td");
+
+                celda.textContent = valor || "-";
+                fila.appendChild(celda);
+
+            });
+
+            const celdaRol =
+                document.createElement("td");
+
+            const selectRol =
+                document.createElement("select");
+
+            selectRol.className = "select-rol-pendiente";
+            selectRol.innerHTML =
+                '<option value="">Seleccione rol</option>';
+
+            rolesDisponibles.forEach((rolDisponible) => {
+
+                const opcion =
+                    document.createElement("option");
+
+                opcion.value = rolDisponible.id_rol;
+                opcion.textContent = rolDisponible.nombre;
+                selectRol.appendChild(opcion);
+
+            });
+
+            celdaRol.appendChild(selectRol);
+            fila.appendChild(celdaRol);
+
+            [
+                usuarioPendiente.oficina,
+                formatearFechaTabla(usuarioPendiente.fecha_creacion)
+            ].forEach((valor) => {
+
+                const celda =
+                    document.createElement("td");
+
+                celda.textContent = valor || "-";
+                fila.appendChild(celda);
+
+            });
+
+            const celdaAcciones =
+                document.createElement("td");
+
+            const acciones =
+                document.createElement("div");
+
+            acciones.className = "acciones-usuarios-pendientes";
+
+            const aprobar =
+                document.createElement("button");
+
+            aprobar.type = "button";
+            aprobar.className = "btn-usuario-aprobar";
+            aprobar.textContent = "Aprobar";
+            aprobar.addEventListener("click", () =>
+                gestionarRegistroUsuario(
+                    usuarioPendiente.id_usuario,
+                    "aprobar",
+                    selectRol.value
+                )
+            );
+
+            const rechazar =
+                document.createElement("button");
+
+            rechazar.type = "button";
+            rechazar.className = "btn-usuario-rechazar";
+            rechazar.textContent = "Rechazar";
+            rechazar.addEventListener("click", () =>
+                gestionarRegistroUsuario(usuarioPendiente.id_usuario, "rechazar")
+            );
+
+            acciones.appendChild(aprobar);
+            acciones.appendChild(rechazar);
+            celdaAcciones.appendChild(acciones);
+            fila.appendChild(celdaAcciones);
+            tablaPendientesBody.appendChild(fila);
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        tablaPendientesBody.innerHTML = `
+            <tr>
+                <td colspan="8">No fue posible cargar las solicitudes pendientes</td>
+            </tr>
+        `;
+
+    }
+
+}
+
+async function gestionarRegistroUsuario(idUsuario, accion, idRol = "") {
+
+    if (accion === "aprobar" && !idRol) {
+        mostrarEstadoUsuarios(
+            "Seleccione un rol antes de aprobar al usuario",
+            true
+        );
+        return;
+    }
+
+    try {
+
+        mostrarEstadoUsuarios("Actualizando solicitud...", false);
+
+        const respuesta =
+            await fetchAutenticado(
+                `${API_URL}/api/usuarios/${idUsuario}/${accion}`,
+                {
+                    method: "PUT",
+                    headers: obtenerHeadersSesion(true),
+                    body: JSON.stringify(
+                        accion === "aprobar"
+                            ? { id_rol: Number(idRol) }
+                            : {}
+                    )
+                }
+            );
+
+        const datos =
+            await respuesta.json();
+
+        if (!datos.success) {
+            throw new Error(datos.message || "No se pudo actualizar el usuario");
+        }
+
+        mostrarEstadoUsuarios(
+            accion === "aprobar"
+                ? "Usuario aprobado correctamente"
+                : "Usuario rechazado correctamente",
+            false
+        );
+
+        await cargarSolicitudesRegistroPendientes();
+        await cargarUsuariosSistema();
+
+    } catch (error) {
+
+        console.error(error);
+        mostrarEstadoUsuarios(
+            error.message || "No fue posible actualizar el usuario",
+            true
+        );
+
+    }
+
+}
+
 async function cargarAuditoriaSistema() {
 
     const tablaAuditoriaBody =
@@ -1172,7 +1560,7 @@ async function cargarAuditoriaSistema() {
     try {
 
         const respuesta =
-            await fetch(`${API_URL}/api/auditoria`);
+            await fetchAutenticado(`${API_URL}/api/auditoria`);
 
         const datos =
             await respuesta.json();
@@ -1298,9 +1686,20 @@ function inicializarChatInstitucional() {
     if (!listaMensajes || !formularioChat || !mensajeChat) {
         return;
     }
+
+    const botonEnviarChat =
+        formularioChat.querySelector('button[type="submit"]');
+
+    let envioMensajeEnCurso = false;
+
     mensajeChat.addEventListener("keydown", (evento) => {
 
         if (evento.key !== "Enter" || evento.shiftKey) {
+            return;
+        }
+
+        if (envioMensajeEnCurso) {
+            evento.preventDefault();
             return;
         }
 
@@ -1829,11 +2228,9 @@ function inicializarChatInstitucional() {
                 `${API_URL}/api/solicitudes-carpeta/${idSolicitud}/${accion}`;
 
             const respuesta =
-                await fetch(url, {
+                await fetchAutenticado(url, {
                     method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: obtenerHeadersSesion(true),
                     body: JSON.stringify({
                         id_usuario_responde: Number(idUsuario),
                         motivo_rechazo: motivoRechazo
@@ -1871,7 +2268,7 @@ function inicializarChatInstitucional() {
         }
 
         const eventosChat =
-            new EventSource(`${API_URL}/api/chat/eventos`);
+            new EventSource(`${API_URL}/api/chat/eventos?${obtenerQuerySesion()}`);
 
         window.chatInstitucionalEventSource = eventosChat;
 
@@ -1919,7 +2316,7 @@ function inicializarChatInstitucional() {
             mostrarEstado("Cargando mensajes...");
 
             const respuesta =
-                await fetch(`${API_URL}/api/chat/mensajes`);
+                await fetchAutenticado(`${API_URL}/api/chat/mensajes`);
 
             const datos =
                 await respuesta.json();
@@ -1963,13 +2360,11 @@ function inicializarChatInstitucional() {
 
             mostrarEstado("Eliminando mensaje...");
 
-            const respuesta = await fetch(
+            const respuesta = await fetchAutenticado(
                 `${API_URL}/api/chat/mensajes/${idMensaje}`,
                 {
                     method: "DELETE",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: obtenerHeadersSesion(true),
                     body: JSON.stringify({
                         id_usuario: idUsuario
                     })
@@ -2005,6 +2400,10 @@ function inicializarChatInstitucional() {
 
         evento.preventDefault();
 
+        if (envioMensajeEnCurso) {
+            return;
+        }
+
         const textoMensaje =
             mensajeChat.value.trim();
 
@@ -2015,14 +2414,17 @@ function inicializarChatInstitucional() {
         try {
 
             mostrarEstado("Enviando mensaje...");
+            envioMensajeEnCurso = true;
 
-            const respuesta = await fetch(
+            if (botonEnviarChat) {
+                botonEnviarChat.disabled = true;
+            }
+
+            const respuesta = await fetchAutenticado(
                 `${API_URL}/api/chat/mensajes`,
                 {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: obtenerHeadersSesion(true),
                     body: JSON.stringify({
                         id_usuario: idUsuario,
                         mensaje: textoMensaje
@@ -2046,6 +2448,14 @@ function inicializarChatInstitucional() {
 
             console.error(error);
             mostrarEstado("No fue posible enviar el mensaje", true);
+
+        } finally {
+
+            envioMensajeEnCurso = false;
+
+            if (botonEnviarChat) {
+                botonEnviarChat.disabled = false;
+            }
 
         }
 
@@ -2107,7 +2517,7 @@ function inicializarChatInstitucional() {
         try {
 
             const respuesta =
-                await fetch(`${API_URL}/api/solicitudes-carpeta/motivos`);
+                await fetchAutenticado(`${API_URL}/api/solicitudes-carpeta/motivos`);
 
             const datos =
                 await respuesta.json();
@@ -2166,11 +2576,9 @@ function inicializarChatInstitucional() {
             mostrarEstado("Registrando solicitud...");
 
             const respuesta =
-                await fetch(`${API_URL}/api/solicitudes-carpeta`, {
+                await fetchAutenticado(`${API_URL}/api/solicitudes-carpeta`, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: obtenerHeadersSesion(true),
                     body: JSON.stringify({
                         id_usuario_solicita: Number(idUsuario),
                         id_oficina_solicitante: Number(idOficina),
@@ -2238,14 +2646,43 @@ function inicializarChatInstitucional() {
 
 }
 
-function cerrarSesion() {
+async function cerrarSesion() {
 
-    sessionStorage.removeItem("usuario");
-    sessionStorage.removeItem("rol");
-    sessionStorage.removeItem("id_usuario");
-    sessionStorage.removeItem("id_oficina");
+    try {
 
-    window.location.href = "login.html";
+        const idUsuario =
+            sessionStorage.getItem("id_usuario");
+
+        const tokenSesion =
+            obtenerTokenSesion();
+
+        if (idUsuario && tokenSesion) {
+            await fetch(`${API_URL}/api/auth/logout`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    id_usuario: Number(idUsuario),
+                    token_sesion: tokenSesion
+                })
+            });
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+    } finally {
+
+        if (window.heartbeatSesionTimer) {
+            window.clearInterval(window.heartbeatSesionTimer);
+        }
+
+        limpiarSesionLocal();
+        window.location.href = "login.html";
+
+    }
 
 }
 document.addEventListener("DOMContentLoaded", () => {
@@ -2272,7 +2709,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 function probarAccesoAdmin() {
 
-    fetch(`${API_URL}/api/secure/admin`, {
+    fetchAutenticado(`${API_URL}/api/secure/admin`, {
         method: 'GET',
         headers: {
             'x-user': sessionStorage.getItem('usuario'),
