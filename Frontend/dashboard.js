@@ -245,8 +245,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const rol = sessionStorage.getItem("rol");
-    const puedeVerDetallePrestamos =
+    const puedeVerFechaDevolucion =
+        rol === "2" || rol === "3" || rol === "4";
+
+    const puedeVerResponsable =
         rol === "2" || rol === "3";
+
 
     inicializarNotificacionesChatGlobales();
     iniciarHeartbeatSesion();
@@ -609,8 +613,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         <th>Usuario solicitante</th>
                         <th>Fecha préstamo</th>
                         <th>Estado</th>
-                        ${puedeVerDetallePrestamos ? `
+                        ${puedeVerFechaDevolucion ? `
                         <th>Fecha de devolución</th>
+                        ` : ""}
+
+                        ${puedeVerResponsable ? `
                         <th>Responsable</th>
                         ` : ""}
 
@@ -621,7 +628,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <tbody id="tablaPrestamosBody">
 
                     <tr>
-                        <td colspan="${puedeVerDetallePrestamos ? 7 : 5}">
+                        <td colspan="${puedeVerFechaDevolucion ? 7 : 5}">
                             Cargando préstamos...
                         </td>
                     </tr>
@@ -966,11 +973,16 @@ async function cargarPrestamosDocumentales() {
 
     const tablaPrestamosBody =
         document.getElementById("tablaPrestamosBody");
-    const puedeVerDetallePrestamos =
-        sessionStorage.getItem("rol") === "2" ||
-        sessionStorage.getItem("rol") === "3";
+    const rol = sessionStorage.getItem("rol");
+
+    const puedeVerFechaDevolucion =
+        rol === "2" || rol === "3" || rol === "4";
+
+    const puedeVerResponsable =
+        rol === "2" || rol === "3";
+
     const totalColumnas =
-        puedeVerDetallePrestamos ? 7 : 5;
+        puedeVerResponsable ? 7 : (puedeVerFechaDevolucion ? 6 : 5);
 
     if (!tablaPrestamosBody) {
         return;
@@ -1067,7 +1079,7 @@ async function cargarPrestamosDocumentales() {
 
             fila.appendChild(celdaEstado);
 
-            if (puedeVerDetallePrestamos) {
+            if (puedeVerFechaDevolucion) {
 
                 const celdaFechaDevolucion =
                     document.createElement("td");
@@ -1080,6 +1092,10 @@ async function cargarPrestamosDocumentales() {
 
                 fila.appendChild(celdaFechaDevolucion);
 
+            }
+
+            if (puedeVerResponsable) {
+
                 const celdaResponsable =
                     document.createElement("td");
 
@@ -1089,7 +1105,6 @@ async function cargarPrestamosDocumentales() {
                 fila.appendChild(celdaResponsable);
 
             }
-
             tablaPrestamosBody.appendChild(fila);
 
         });
