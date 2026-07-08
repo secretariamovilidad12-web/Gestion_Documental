@@ -36,7 +36,7 @@ router.get('/', requerirSesion({ rolesPermitidos: [2] }), async (req, res) => {
                         ELSE ae.datos
                     END AS datos,
                     ae.fecha_evento
-                FROM auditoria_eventos
+                FROM auditoria_eventos ae
                 LEFT JOIN prestamos_documentales p
                     ON ae.modulo = 'Prestamos documentales'
                     AND ae.accion = 'Confirmar devolucion'
