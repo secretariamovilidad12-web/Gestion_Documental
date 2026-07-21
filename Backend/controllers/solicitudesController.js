@@ -16,6 +16,18 @@ function esFormatoPlacaValido(placa) {
     );
 }
 
+async function bloquearSolicitudPorUsuarioYPlaca(client, idUsuarioSolicita, placaNormalizada) {
+    await client.query(
+        `
+        SELECT pg_advisory_xact_lock($1, hashtext($2))
+        `,
+        [
+            Number(idUsuarioSolicita),
+            String(placaNormalizada || '')
+        ]
+    );
+}
+
 async function obtenerConversacion(client) {
     const existente = await client.query(
         `
@@ -202,6 +214,35 @@ async function crearSolicitud(req, res) {
         }
 
         await client.query('BEGIN');
+        await bloquearSolicitudPorUsuarioYPlaca(
+            client,
+            id_usuario_solicita,
+            placaNormalizada
+        );
+
+        const solicitudPendiente = await client.query(
+            `
+            SELECT id_solicitud
+            FROM solicitudes_carpeta
+            WHERE id_usuario_solicita = $1
+            AND UPPER(placa) = $2
+            AND estado = 'PENDIENTE'
+            LIMIT 1
+            `,
+            [
+                id_usuario_solicita,
+                placaNormalizada
+            ]
+        );
+
+        if (solicitudPendiente.rows.length > 0) {
+            await client.query('ROLLBACK');
+
+            return res.status(409).json({
+                success: false,
+                message: 'Ya existe una solicitud pendiente para esta carpeta.'
+            });
+        }
 
         const prestamoActivo = await client.query(
             `
@@ -302,6 +343,17 @@ async function crearSolicitud(req, res) {
         });
     } catch (error) {
         await client.query('ROLLBACK');
+
+        if (
+            error?.code === '23505' &&
+            error?.constraint === 'ux_solicitudes_carpeta_usuario_placa_pendiente'
+        ) {
+            return res.status(409).json({
+                success: false,
+                message: 'Ya existe una solicitud pendiente para esta carpeta.'
+            });
+        }
+
         console.error(error);
 
         return res.status(500).json({

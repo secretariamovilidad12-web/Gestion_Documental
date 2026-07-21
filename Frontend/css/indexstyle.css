@@ -1586,6 +1586,29 @@ body {
     color: white;
 }
 
+.modal-solicitud-acciones button:last-child:disabled {
+    opacity: 0.85;
+    cursor: wait;
+}
+
+.spinner-solicitud {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    margin-right: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    vertical-align: -2px;
+    animation: giro-spinner-solicitud 0.8s linear infinite;
+}
+
+@keyframes giro-spinner-solicitud {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 @media (max-width: 600px) {
 
     .filtros-prestamos {

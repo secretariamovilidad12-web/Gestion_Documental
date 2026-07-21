@@ -1887,6 +1887,9 @@ function inicializarChatInstitucional() {
     const btnCancelarSolicitud =
         document.getElementById("btnCancelarSolicitud");
 
+    const botonEnviarSolicitud =
+        formSolicitudCarpeta?.querySelector('button[type="submit"]');
+
 
     const busquedaChat =
         document.getElementById("busquedaChat");
@@ -1935,6 +1938,7 @@ function inicializarChatInstitucional() {
     let mensajeSeleccionado = null;
     let cargandoMensajesAnteriores = false;
     let hayMasMensajesAnteriores = true;
+    let envioSolicitudEnCurso = false;
 
     if (window.chatInstitucionalEventSource) {
         window.chatInstitucionalEventSource.close();
@@ -2034,6 +2038,24 @@ function inicializarChatInstitucional() {
         };
 
         window.setTimeout(ocultarToast, 4000);
+
+    }
+
+    function actualizarEstadoEnvioSolicitud(enviando) {
+
+        envioSolicitudEnCurso = enviando;
+
+        if (!botonEnviarSolicitud) {
+            return;
+        }
+
+        botonEnviarSolicitud.disabled =
+            enviando;
+
+        botonEnviarSolicitud.innerHTML =
+            enviando
+                ? '<span class="spinner-solicitud" aria-hidden="true"></span> Enviando solicitud...'
+                : 'Enviar solicitud';
 
     }
 
@@ -2848,6 +2870,7 @@ function inicializarChatInstitucional() {
             btnSolicitarCarpeta.disabled = false;
         }
 
+        actualizarEstadoEnvioSolicitud(false);
         formSolicitudCarpeta?.reset();
         actualizarValidacionPlaca(false);
 
@@ -2897,6 +2920,10 @@ function inicializarChatInstitucional() {
 
         evento.preventDefault();
 
+        if (envioSolicitudEnCurso) {
+            return;
+        }
+
         const placa =
             placaSolicitud.value.trim().toUpperCase();
 
@@ -2918,6 +2945,7 @@ function inicializarChatInstitucional() {
         try {
 
             mostrarEstado("Registrando solicitud...");
+            actualizarEstadoEnvioSolicitud(true);
 
             const respuesta =
                 await fetchAutenticado(`${API_URL}/api/solicitudes-carpeta`, {
@@ -2954,6 +2982,7 @@ function inicializarChatInstitucional() {
                     ? "\u2716 Solicitud denegada. La carpeta ya tiene un préstamo activo."
                     : (error.message || "Error al registrar solicitud");
             mostrarToast("error", mensajeError);
+            actualizarEstadoEnvioSolicitud(false);
 
         }
 
