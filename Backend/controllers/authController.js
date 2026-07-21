@@ -224,6 +224,215 @@ async function registrarUsuario(req, res) {
 
 }
 
+async function cambiarPassword(req, res) {
+
+    try {
+
+        const idUsuario =
+            Number(req.usuarioSesion?.id_usuario);
+
+        const passwordActual =
+            String(req.body.password_actual || '');
+
+        const nuevaPassword =
+            String(req.body.nueva_password || '');
+
+        const confirmarNuevaPassword =
+            String(req.body.confirmar_nueva_password || '');
+
+        if (!Number.isInteger(idUsuario) || idUsuario <= 0) {
+            return res.status(401).json({
+                success: false,
+                message: 'La sesión no es válida o ha expirado'
+            });
+        }
+
+        if (!passwordActual || !nuevaPassword || !confirmarNuevaPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'Complete todos los datos obligatorios'
+            });
+        }
+
+        if (nuevaPassword !== confirmarNuevaPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'La nueva contraseña y su confirmación no coinciden'
+            });
+        }
+
+        if (nuevaPassword.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: 'La nueva contraseña debe tener al menos 8 caracteres'
+            });
+        }
+
+        const resultado = await pool.query(
+            `
+            SELECT
+                id_usuario,
+                usuario,
+                password_hash
+            FROM usuarios
+            WHERE id_usuario = $1
+            AND activo = true
+            AND fecha_eliminacion IS NULL
+            LIMIT 1
+            `,
+            [idUsuario]
+        );
+
+        if (resultado.rowCount === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Usuario no encontrado'
+            });
+        }
+
+        const usuario =
+            resultado.rows[0];
+
+        const passwordActualValida =
+            await bcrypt.compare(
+                passwordActual,
+                usuario.password_hash
+            );
+
+        if (!passwordActualValida) {
+            return res.status(400).json({
+                success: false,
+                message: 'La contraseña actual es incorrecta'
+            });
+        }
+
+        const esMismaPassword =
+            await bcrypt.compare(
+                nuevaPassword,
+                usuario.password_hash
+            );
+
+        if (esMismaPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'La nueva contraseña no puede ser igual a la actual'
+            });
+        }
+
+        const nuevoHash =
+            await bcrypt.hash(nuevaPassword, 12);
+
+        await pool.query(
+            `
+            UPDATE usuarios
+            SET password_hash = $2
+            WHERE id_usuario = $1
+            `,
+            [idUsuario, nuevoHash]
+        );
+
+        await registrarAuditoria({
+            id_usuario: idUsuario,
+            modulo: 'Usuarios',
+            accion: 'Cambiar contraseña',
+            descripcion: `El usuario ${usuario.usuario} actualizó su contraseña.`,
+            referencia_tipo: 'usuario',
+            referencia_id: idUsuario,
+            datos: {
+                cambio_password: true
+            }
+        });
+
+        res.json({
+            success: true,
+            message: 'Contraseña actualizada correctamente'
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            success: false,
+            message: 'Error al cambiar contraseña'
+        });
+
+    }
+
+}
+
+async function solicitarRecuperacionPassword(req, res) {
+
+    try {
+
+        const {
+            usuario,
+            correo
+        } = req.body;
+
+        void usuario;
+        void correo;
+
+        // Preparado para futura integracion SMTP:
+        // 1. localizar usuario por correo o usuario;
+        // 2. generar token temporal de recuperacion;
+        // 3. persistir token, expiracion y estado;
+        // 4. enviar enlace seguro mediante proveedor SMTP externo.
+        return res.status(501).json({
+            success: false,
+            message: 'La recuperación de contraseña por correo aún no está disponible'
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: 'Error al preparar recuperación de contraseña'
+        });
+
+    }
+
+}
+
+async function restablecerPassword(req, res) {
+
+    try {
+
+        const {
+            token_recuperacion,
+            nueva_password,
+            confirmar_nueva_password
+        } = req.body;
+
+        void token_recuperacion;
+        void nueva_password;
+        void confirmar_nueva_password;
+
+        // Preparado para futura integracion SMTP:
+        // 1. validar token de recuperacion y su expiracion;
+        // 2. validar nuevas credenciales;
+        // 3. regenerar password_hash con bcrypt;
+        // 4. invalidar el token para un solo uso.
+        return res.status(501).json({
+            success: false,
+            message: 'El restablecimiento de contraseña por correo aún no está disponible'
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: 'Error al preparar restablecimiento de contraseña'
+        });
+
+    }
+
+}
+
 const login = async (req, res) => {
 
     try {
@@ -372,6 +581,9 @@ const logout = async (req, res) => {
 module.exports = {
     obtenerCatalogosRegistro,
     registrarUsuario,
+    cambiarPassword,
+    solicitarRecuperacionPassword,
+    restablecerPassword,
     login,
     logout
 };

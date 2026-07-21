@@ -232,6 +232,33 @@ document.addEventListener("DOMContentLoaded", () => {
     const usuarioFooter =
         document.getElementById("usuarioFooter");
 
+    const btnCambiarPassword =
+        document.getElementById("btnCambiarPassword");
+
+    const modalCambiarPassword =
+        document.getElementById("modalCambiarPassword");
+
+    const formCambiarPassword =
+        document.getElementById("formCambiarPassword");
+
+    const btnCerrarModalPassword =
+        document.getElementById("btnCerrarModalPassword");
+
+    const btnCancelarCambioPassword =
+        document.getElementById("btnCancelarCambioPassword");
+
+    const estadoCambioPassword =
+        document.getElementById("estadoCambioPassword");
+
+    const passwordActual =
+        document.getElementById("passwordActual");
+
+    const nuevaPassword =
+        document.getElementById("nuevaPassword");
+
+    const confirmarNuevaPassword =
+        document.getElementById("confirmarNuevaPassword");
+
     if (usuarioConectado) {
 
         usuarioConectado.textContent = usuario;
@@ -242,6 +269,173 @@ document.addEventListener("DOMContentLoaded", () => {
 
         usuarioFooter.textContent = usuario;
 
+    }
+
+    function mostrarEstadoCambioPassword(texto, esError = false) {
+
+        if (!estadoCambioPassword) {
+            return;
+        }
+
+        estadoCambioPassword.hidden = false;
+        estadoCambioPassword.textContent = texto;
+        estadoCambioPassword.classList.toggle(
+            "estado-password-error",
+            esError
+        );
+
+    }
+
+    function limpiarEstadoCambioPassword() {
+
+        if (!estadoCambioPassword) {
+            return;
+        }
+
+        estadoCambioPassword.hidden = true;
+        estadoCambioPassword.textContent = "";
+        estadoCambioPassword.classList.remove("estado-password-error");
+
+    }
+
+    function abrirModalCambiarPassword() {
+
+        if (!modalCambiarPassword) {
+            return;
+        }
+
+        limpiarEstadoCambioPassword();
+        formCambiarPassword?.reset();
+        modalCambiarPassword.hidden = false;
+        passwordActual?.focus();
+
+    }
+
+    function cerrarModalCambiarPassword() {
+
+        if (!modalCambiarPassword) {
+            return;
+        }
+
+        modalCambiarPassword.hidden = true;
+        formCambiarPassword?.reset();
+        limpiarEstadoCambioPassword();
+
+    }
+
+    if (btnCambiarPassword) {
+        btnCambiarPassword.addEventListener(
+            "click",
+            abrirModalCambiarPassword
+        );
+    }
+
+    if (btnCerrarModalPassword) {
+        btnCerrarModalPassword.addEventListener(
+            "click",
+            cerrarModalCambiarPassword
+        );
+    }
+
+    if (btnCancelarCambioPassword) {
+        btnCancelarCambioPassword.addEventListener(
+            "click",
+            cerrarModalCambiarPassword
+        );
+    }
+
+    if (formCambiarPassword) {
+        formCambiarPassword.addEventListener(
+            "submit",
+            async (evento) => {
+
+                evento.preventDefault();
+                limpiarEstadoCambioPassword();
+
+                const passwordActualTexto =
+                    String(passwordActual?.value || "");
+
+                const nuevaPasswordTexto =
+                    String(nuevaPassword?.value || "");
+
+                const confirmarNuevaPasswordTexto =
+                    String(confirmarNuevaPassword?.value || "");
+
+                if (
+                    !passwordActualTexto ||
+                    !nuevaPasswordTexto ||
+                    !confirmarNuevaPasswordTexto
+                ) {
+                    mostrarEstadoCambioPassword(
+                        "Complete todos los campos obligatorios",
+                        true
+                    );
+                    return;
+                }
+
+                if (nuevaPasswordTexto.length < 8) {
+                    mostrarEstadoCambioPassword(
+                        "La nueva contraseña debe tener al menos 8 caracteres",
+                        true
+                    );
+                    return;
+                }
+
+                if (nuevaPasswordTexto !== confirmarNuevaPasswordTexto) {
+                    mostrarEstadoCambioPassword(
+                        "La nueva contraseña y su confirmación no coinciden",
+                        true
+                    );
+                    return;
+                }
+
+                try {
+
+                    mostrarEstadoCambioPassword("Actualizando contraseña...");
+
+                    const respuesta =
+                        await fetchAutenticado(
+                            `${API_URL}/api/auth/cambiar-password`,
+                            {
+                                method: "POST",
+                                headers: obtenerHeadersSesion(true),
+                                body: JSON.stringify({
+                                    password_actual: passwordActualTexto,
+                                    nueva_password: nuevaPasswordTexto,
+                                    confirmar_nueva_password: confirmarNuevaPasswordTexto
+                                })
+                            }
+                        );
+
+                    const datos =
+                        await respuesta.json();
+
+                    if (!datos.success) {
+                        throw new Error(
+                            datos.message || "No se pudo cambiar la contraseña"
+                        );
+                    }
+
+                    mostrarEstadoCambioPassword(
+                        datos.message || "Contraseña actualizada correctamente"
+                    );
+
+                    window.setTimeout(() => {
+                        cerrarModalCambiarPassword();
+                    }, 1000);
+
+                } catch (error) {
+
+                    console.error(error);
+                    mostrarEstadoCambioPassword(
+                        error.message || "No se pudo cambiar la contraseña",
+                        true
+                    );
+
+                }
+
+            }
+        );
     }
 
     const rol = sessionStorage.getItem("rol");
@@ -1736,11 +1930,19 @@ function inicializarChatInstitucional() {
     const rolUsuarioActual = sessionStorage.getItem("rol");
     const puedeGestionarSolicitudes =
         rolUsuarioActual === "2" || rolUsuarioActual === "3";
+    const LIMITE_MENSAJES_CHAT = 100;
     let mensajesChat = [];
     let mensajeSeleccionado = null;
+    let cargandoMensajesAnteriores = false;
+    let hayMasMensajesAnteriores = true;
 
     if (window.chatInstitucionalEventSource) {
         window.chatInstitucionalEventSource.close();
+    }
+
+    if (window.chatFallbackInterval) {
+        window.clearInterval(window.chatFallbackInterval);
+        window.chatFallbackInterval = null;
     }
 
     function mostrarEstado(texto, esError = false) {
@@ -2117,7 +2319,7 @@ function inicializarChatInstitucional() {
 
     }
 
-    function renderizarMensajes() {
+    function renderizarMensajes(ajustarScrollAlFinal = true) {
 
         listaMensajes.innerHTML = "";
         ocultarMenuMensaje();
@@ -2167,7 +2369,9 @@ function inicializarChatInstitucional() {
                 listaMensajes.appendChild(crearMensajeHTML(mensaje));
             });
 
-            listaMensajes.scrollTop = listaMensajes.scrollHeight;
+            if (ajustarScrollAlFinal) {
+                listaMensajes.scrollTop = listaMensajes.scrollHeight;
+            }
 
         }
 
@@ -2236,6 +2440,22 @@ function inicializarChatInstitucional() {
 
     }
 
+    function obtenerIdMensajeMasAntiguo() {
+
+        const primerMensaje =
+            mensajesChat[0];
+
+        const idMensaje =
+            Number(primerMensaje?.id_mensaje || primerMensaje?.idMensaje);
+
+        if (!Number.isInteger(idMensaje) || idMensaje <= 0) {
+            return null;
+        }
+
+        return idMensaje;
+
+    }
+
     async function gestionarSolicitud(idSolicitud, accion, motivoRechazo = "") {
 
         if (!idSolicitud) {
@@ -2286,7 +2506,8 @@ function inicializarChatInstitucional() {
     function conectarEventosChat() {
 
         if (!window.EventSource) {
-            setInterval(cargarMensajes, 3000);
+            window.chatFallbackInterval =
+                window.setInterval(cargarMensajes, 3000);
             return;
         }
 
@@ -2332,14 +2553,56 @@ function inicializarChatInstitucional() {
 
     }
 
-    async function cargarMensajes() {
+    async function cargarMensajes(cargarAnteriores = false) {
+
+        if (cargarAnteriores) {
+
+            if (cargandoMensajesAnteriores || !hayMasMensajesAnteriores) {
+                return;
+            }
+
+            if (busquedaChat && busquedaChat.value.trim()) {
+                return;
+            }
+
+        }
 
         try {
 
-            mostrarEstado("Cargando mensajes...");
+            if (cargarAnteriores) {
+                cargandoMensajesAnteriores = true;
+                mostrarEstado("Cargando mensajes anteriores...");
+            } else {
+                mostrarEstado("Cargando mensajes...");
+            }
+
+            const parametros =
+                new URLSearchParams();
+
+            parametros.set(
+                "limit",
+                String(LIMITE_MENSAJES_CHAT)
+            );
+
+            if (cargarAnteriores) {
+                const idMensajeMasAntiguo =
+                    obtenerIdMensajeMasAntiguo();
+
+                if (!idMensajeMasAntiguo) {
+                    hayMasMensajesAnteriores = false;
+                    return;
+                }
+
+                parametros.set(
+                    "before",
+                    String(idMensajeMasAntiguo)
+                );
+            }
 
             const respuesta =
-                await fetchAutenticado(`${API_URL}/api/chat/mensajes`);
+                await fetchAutenticado(
+                    `${API_URL}/api/chat/mensajes?${parametros.toString()}`
+                );
 
             const datos =
                 await respuesta.json();
@@ -2350,8 +2613,50 @@ function inicializarChatInstitucional() {
                 );
             }
 
-            mensajesChat = datos.mensajes || [];
-            renderizarMensajes();
+            const mensajesRecibidos =
+                datos.mensajes || [];
+
+            hayMasMensajesAnteriores =
+                mensajesRecibidos.length === LIMITE_MENSAJES_CHAT;
+
+            if (cargarAnteriores) {
+
+                const alturaAnterior =
+                    listaMensajes.scrollHeight;
+
+                const scrollAnterior =
+                    listaMensajes.scrollTop;
+
+                const idsExistentes =
+                    new Set(
+                        mensajesChat.map((mensaje) =>
+                            String(mensaje.id_mensaje || mensaje.idMensaje || "")
+                        )
+                    );
+
+                const mensajesAnteriores =
+                    mensajesRecibidos.filter((mensaje) =>
+                        !idsExistentes.has(
+                            String(mensaje.id_mensaje || mensaje.idMensaje || "")
+                        )
+                    );
+
+                if (mensajesAnteriores.length > 0) {
+                    mensajesChat = [
+                        ...mensajesAnteriores,
+                        ...mensajesChat
+                    ];
+                    renderizarMensajes(false);
+                    listaMensajes.scrollTop =
+                        listaMensajes.scrollHeight - alturaAnterior + scrollAnterior;
+                }
+
+            } else {
+
+                mensajesChat = mensajesRecibidos;
+                renderizarMensajes();
+
+            }
 
             mostrarEstado("Mensajes actualizados");
 
@@ -2359,6 +2664,12 @@ function inicializarChatInstitucional() {
 
             console.error(error);
             mostrarEstado("No fue posible cargar el chat", true);
+
+        } finally {
+
+            if (cargandoMensajesAnteriores) {
+                cargandoMensajesAnteriores = false;
+            }
 
         }
 
@@ -2491,6 +2802,16 @@ function inicializarChatInstitucional() {
     if (busquedaChat) {
         busquedaChat.addEventListener("input", renderizarMensajes);
     }
+
+    listaMensajes.addEventListener("scroll", () => {
+
+        if (listaMensajes.scrollTop > 40) {
+            return;
+        }
+
+        cargarMensajes(true);
+
+    });
 
     if (btnEliminarMensajeChat) {
         btnEliminarMensajeChat.addEventListener(

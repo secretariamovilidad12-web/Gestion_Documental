@@ -28,6 +28,9 @@
                 <div class="datos-usuario">
                     <strong id="usuarioFooter">Usuario conectado</strong>
                     <span id="rolUsuarioTexto">Rol institucional</span>
+                    <button id="btnCambiarPassword" type="button" class="btn-cambiar-password">
+                        Cambiar contraseña
+                    </button>
                 </div>
             </div>
 
@@ -113,6 +116,33 @@
 
         </footer>
 
+    </div>
+
+    <div id="modalCambiarPassword" class="modal-password" hidden>
+        <div class="modal-password-panel">
+            <div class="modal-password-header">
+                <h3>Cambiar contraseña</h3>
+                <button id="btnCerrarModalPassword" type="button">×</button>
+            </div>
+
+            <form id="formCambiarPassword" class="form-password">
+                <label for="passwordActual">Contraseña actual</label>
+                <input id="passwordActual" type="password" minlength="8" required>
+
+                <label for="nuevaPassword">Nueva contraseña</label>
+                <input id="nuevaPassword" type="password" minlength="8" required>
+
+                <label for="confirmarNuevaPassword">Confirmar nueva contraseña</label>
+                <input id="confirmarNuevaPassword" type="password" minlength="8" required>
+
+                <div id="estadoCambioPassword" class="estado-password" hidden></div>
+
+                <div class="modal-password-acciones">
+                    <button id="btnCancelarCambioPassword" type="button">Cancelar</button>
+                    <button type="submit">Guardar</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script src="dashboard.js"></script>
