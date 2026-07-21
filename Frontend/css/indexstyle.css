@@ -122,15 +122,20 @@ body {
     font-weight: bold;
 }
 
-.badge-chat {
+#btnChat {
     position: relative;
-    min-width: 24px;
-    height: 24px;
-    display: inline-flex;
+}
+
+.badge-chat {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    min-width: 26px;
+    height: 26px;
+    display: flex;
     align-items: center;
     justify-content: center;
-    margin-left: auto;
-    padding: 0 7px;
+    padding: 0 6px;
     border-radius: 999px;
     border: 2px solid #ffffff;
     background: #16a34a;

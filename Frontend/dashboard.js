@@ -499,14 +499,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     function conectarNotificacionesChat() {
 
-        if (!window.EventSource || window.chatNotificacionesEventSource) {
+        if (!window.EventSource) {
             return;
         }
 
         const eventosChat =
+            window.chatNotificacionesEventSource ||
             new EventSource(`${API_URL}/api/chat/eventos?${obtenerQuerySesion()}`);
 
         window.chatNotificacionesEventSource = eventosChat;
+
+        if (eventosChat.__badgeChatRegistrado) {
+            return;
+        }
+
+        eventosChat.__badgeChatRegistrado = true;
 
         eventosChat.addEventListener("mensaje-creado", (evento) => {
 
@@ -918,6 +925,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (boton) {
 
             boton.addEventListener("click", () => {
+                moduloActual = modulos[boton.id].clave;
 
                 marcarBotonActivo(boton);
                 cargarModulo(modulos[boton.id]);
